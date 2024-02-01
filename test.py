@@ -163,6 +163,7 @@ class TestRaftEventsWarm(Test):
         self.visualizer(batch[-1])
 
     def visualize_sample_dsec(self, batch, batch_idx):
+        # print(type(self.visualizer))
         self.visualizer(batch[-1], batch_idx, None)
 
     def check_states(self, batch):

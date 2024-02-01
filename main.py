@@ -4,7 +4,8 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["NUMEXPR_MAX_THREADS"]="1"
 from loader.loader_mvsec_flow import *
-from loader.loader_dsec import *
+# from loader.loader_dsec import *
+from loader.loader_evimo import *
 from utils.logger import *
 import utils.helper_functions as helper
 import json
@@ -26,7 +27,7 @@ def initialize_tester(config):
 
 def get_visualizer(args):
     # DSEC dataset
-    if args.dataset.lower() == 'dsec':
+    if args.dataset.lower() == 'dsec' or args.dataset.lower() == 'evimo':
         return visualization.DsecFlowVisualizer
     # MVSEC dataset
     else:
@@ -41,6 +42,13 @@ def test(args):
             config_path = 'config/dsec_standard.json'
         else:
             raise Exception('Please provide a valid argument for --type. [warm_start/standard]')
+    elif args.dataset.lower()=='evimo':
+        if args.type.lower()=='warm_start':
+            config_path = 'config/evimo_warm_start.json'
+        elif args.type.lower()=='standard':
+            config_path = 'config/evimo_standard.json'
+        else:
+            raise Exception('Please provide a valid argument for --type. [warm_start/standard]')
     elif args.dataset.lower()=='mvsec':
         if args.frequency==20:
             config_path = 'config/mvsec_20.json'
@@ -51,7 +59,7 @@ def test(args):
         if args.type=='standard':
             raise NotImplementedError('Sorry, this is not implemented yet, please choose --type warm_start')
     else:
-        raise Exception('Please provide a valid argument for --dataset. [dsec/mvsec]')
+        raise Exception('Please provide a valid argument for --dataset. [dsec/mvsec/evimo]')
 
 
     # Load config file
@@ -75,6 +83,19 @@ def test(args):
             dataset_path=Path(args.path),
             representation_type=RepresentationType.VOXEL,
             delta_t_ms=100,
+            config=config,
+            type=config['subtype'].lower(),
+            visualize=args.visualize)
+        loader.summary(logger)
+        test_set = loader.get_test_dataset()
+        additional_loader_returns = {'name_mapping_test': loader.get_name_mapping_test()}
+
+    elif args.dataset.lower() == 'evimo':
+        # evimo Dataloading
+        loader = DatasetProvider(
+            dataset_path=Path(args.path),
+            representation_type=RepresentationType.VOXEL,
+            delta_t_us=0.001,
             config=config,
             type=config['subtype'].lower(),
             visualize=args.visualize)

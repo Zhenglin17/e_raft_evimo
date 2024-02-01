@@ -276,7 +276,7 @@ class Sequence(Dataset):
     @staticmethod
     def close_callback(h5f):
         h5f.close()
-
+        
     def get_image_width_height(self):
         return self.height, self.width
 
@@ -447,3 +447,31 @@ class DatasetProvider:
         logger.write_line("================================== Dataloader Summary ====================================", True)
         logger.write_line("Loader Type:\t\t" + self.__class__.__name__, True)
         logger.write_line("Number of Voxel Bins: {}".format(self.test_dataset.datasets[0].num_bins), True)
+
+if __name__ == '__main__':
+    loader = DatasetProvider(
+            dataset_path=Path('/fs/nexus-scratch/zhenglin/E-RAFT/data/'),
+            representation_type=RepresentationType.VOXEL,
+            delta_t_ms=100,
+            type='warm_start',
+            visualize=False)
+    test_set = loader.get_test_dataset()
+    test_set_loader = DataLoader(test_set,
+                                 batch_size=1,
+                                 shuffle=False,
+                                 num_workers=4,
+                                 drop_last=True)
+    for i, data in enumerate(test_set_loader):
+        # print(len(data))
+        data = data[0]
+        print(f'Batch {i} - Inputs type: {type(data)}-Dict keys: {data.keys()}')
+        print(f'file_index: {data["file_index"]}')
+        print(f'save_submission: {data["save_submission"]}')
+        print(f'timestamp: {data["timestamp"]}')
+        print(f'volume_old: {data["event_volume_old"].shape}')
+        print(f'volume_new: {data["event_volume_new"].shape}')
+        print(f'name_map: {data["name_map"]}')
+        
+        # Optional: break the loop after a few batches to avoid printing too much data
+        if i == 2:
+            break
